@@ -2,6 +2,14 @@
 
 Default compose behavior: save drafts in Fastmail with `--draft`. Only send immediately when the user explicitly instructs you to do so.
 
+Draft support exists on all compose commands in this CLI:
+
+- `send --draft`
+- `reply --draft`
+- `forward --draft`
+
+If the user asks to create a draft, do exactly that. Do not convert a draft request into a send, and do not assume draft creation is unavailable without checking `--help`.
+
 ## Safe Compose Pattern
 
 Always follow this sequence before creating or sending anything:
@@ -14,6 +22,8 @@ Always follow this sequence before creating or sending anything:
 6. **Send immediately** only if the user explicitly asked for that
 
 Never execute a send/reply/forward without explicit user confirmation of the final message. Unless the user explicitly says otherwise, execute compose actions as drafts.
+
+When the user says things like "draft it", "create the draft", "make a reply draft", or "write the email", treat that as a draft request, not a send request.
 
 Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every send, reply, forward, or draft action.
 
@@ -77,6 +87,16 @@ fastmail-cli send \
 
 If the user explicitly asks to send immediately, omit `--draft`.
 
+Typical draft verification:
+
+```bash
+fastmail-cli send \
+  --to "alice@example.com" \
+  --subject "Hello" \
+  --body "Message body here." \
+  --draft | jq '{success, email_id: .data.email_id, status: .data.status}'
+```
+
 ## Reply
 
 Always `get` the email first to confirm context:
@@ -99,6 +119,16 @@ fastmail-cli reply EMAIL_ID --body "Thanks." --from "work@yourdomain.com" --draf
 ```
 
 If the user explicitly asks to send immediately, omit `--draft`.
+
+Typical reply-draft verification:
+
+```bash
+fastmail-cli reply EMAIL_ID \
+  --body "Thanks, I'll look into this." \
+  --draft | jq '{success, email_id: .data.email_id, in_reply_to: .data.in_reply_to, status: .data.status}'
+```
+
+Use `--all --draft` when the user wants to reply to the full thread instead of only the sender.
 
 ## Forward
 
@@ -127,6 +157,15 @@ fastmail-cli forward EMAIL_ID \
 ```
 
 If the user explicitly asks to send immediately, omit `--draft`.
+
+Typical forward-draft verification:
+
+```bash
+fastmail-cli forward EMAIL_ID \
+  --to "colleague@example.com" \
+  --body "FYI - see below." \
+  --draft | jq '{success, email_id: .data.email_id, status: .data.status}'
+```
 
 ## Body Text Tips
 
@@ -162,6 +201,13 @@ fastmail-cli reply EMAIL_ID --body "$BODY" --draft
 fastmail-cli send --to "..." --subject "..." --body "..." --draft | jq '{success: .success, message: .message}'
 ```
 
-A successful draft or send returns `"success": true`. On failure, `.error` contains the reason.
+A successful draft or send returns `"success": true`. Draft responses also include an email id and usually `"status": "draft"`.
+On failure, `.error` contains the reason.
+
+For compose actions, prefer surfacing the fields the user cares about:
+
+```bash
+fastmail-cli reply EMAIL_ID --body "..." --draft | jq '{success, email_id: .data.email_id, status: .data.status}'
+```
 
 Refresh `~/.local/share/fastmail-cli-agent/inbox-cache.jsonl` after any action that changes mailbox contents.

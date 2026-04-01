@@ -15,7 +15,16 @@ metadata:
 
 CLI specialist for reading, searching, composing, and managing Fastmail email via `fastmail-cli`.
 
-Default compose behavior: create Fastmail drafts first. Only send immediately when the user explicitly instructs you to send now.
+Default compose behavior: create Fastmail drafts first with `--draft`. Only send immediately when the user explicitly instructs you to send now.
+
+Draft behavior is available on all compose commands:
+
+- `fastmail-cli send ... --draft`
+- `fastmail-cli reply EMAIL_ID ... --draft`
+- `fastmail-cli forward EMAIL_ID ... --draft`
+
+When the user asks you to "create a draft", "draft a reply", or "write the email" without explicitly asking to send it, use `--draft`.
+Do not tell the user draft creation is unsupported without checking command help first.
 
 ## When to Use This Skill
 
@@ -106,6 +115,14 @@ The installed CLI does not use one uniform `data` shape. Match `jq` filters to t
 - `fastmail-cli search ...` → `.data[]`
 - `fastmail-cli get EMAIL_ID` → `.data`
 
+Compose commands return a different shape that is useful when working with drafts:
+
+- `fastmail-cli send ... --draft` → `.data.email_id`, `.data.status`
+- `fastmail-cli reply ... --draft` → `.data.email_id`, `.data.in_reply_to`, `.data.status`
+- `fastmail-cli forward ... --draft` → `.data.email_id`, `.data.status`
+
+For draft actions, verify success with both `.success == true` and `.data.status == "draft"` when present.
+
 ## Core Triage Workflow
 
 ```bash
@@ -194,6 +211,7 @@ Load detailed guidance based on the task at hand:
 - Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every mutating Fastmail action
 - Use `--from` to explicitly select the correct sending identity when multiple exist
 - Default to `--draft` for `send`, `reply`, and `forward`; only omit `--draft` when the user explicitly asks to send immediately
+- Check command help before claiming a compose feature is unavailable; draft support exists on `send`, `reply`, and `forward`
 - Confirm subject, recipients, and body with the user before executing any send/reply/forward/draft
 - Check `.success` in the response before treating the operation as complete
 

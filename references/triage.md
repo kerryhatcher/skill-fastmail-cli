@@ -1,5 +1,11 @@
 # Inbox Triage
 
+When triage turns into a compose task, stay draft-first.
+
+- If the user asks to "write", "draft", or "reply" to an email, create a Fastmail draft with `--draft` unless they explicitly say to send now.
+- Before any `reply` or `forward`, read the full email with `fastmail-cli get EMAIL_ID` and summarize the context to the user.
+- For compose details, follow `references/compose.md`.
+
 ## List Mailboxes
 
 Get all folders with unread and total counts:
@@ -138,7 +144,8 @@ fastmail-cli get EMAIL_ID | jq -r '.data.bodyValues | to_entries[0].value.value'
 fastmail-cli mark-read EMAIL_ID
 fastmail-cli move EMAIL_ID --to Archive
 # or
-fastmail-cli reply EMAIL_ID --body "..."
+fastmail-cli reply EMAIL_ID --body "..." --draft
 ```
 
 Always confirm destructive actions (spam, trash) with the user before running them for each email.
+When the user wants a written response, confirm recipients/subject/body and create a draft unless they explicitly asked to send immediately.
