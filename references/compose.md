@@ -1,16 +1,19 @@
 # Compose: Send, Reply, Forward
 
+Default compose behavior: save drafts in Fastmail with `--draft`. Only send immediately when the user explicitly instructs you to do so.
+
 ## Safe Compose Pattern
 
-Always follow this sequence before sending anything:
+Always follow this sequence before creating or sending anything:
 
 1. **Read the email** you're responding to (`fastmail-cli get EMAIL_ID`)
 2. **Summarize to the user** — subject, sender, key content
 3. **Draft the response** with the user
 4. **Confirm recipients, subject, and body** before executing
-5. **Send**
+5. **Create a draft** with `--draft`
+6. **Send immediately** only if the user explicitly asked for that
 
-Never execute a send/reply/forward without explicit user confirmation of the final message.
+Never execute a send/reply/forward without explicit user confirmation of the final message. Unless the user explicitly says otherwise, execute compose actions as drafts.
 
 Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every send, reply, forward, or draft action.
 
@@ -28,11 +31,14 @@ Choose the identity that matches the context of the email — for example, use a
 
 ## Send a New Email
 
+Default pattern:
+
 ```bash
 fastmail-cli send \
   --to "alice@example.com" \
   --subject "Hello" \
-  --body "Message body here."
+  --body "Message body here." \
+  --draft
 ```
 
 ### Multiple recipients
@@ -42,7 +48,8 @@ fastmail-cli send \
 fastmail-cli send \
   --to "alice@example.com, bob@example.com" \
   --subject "Team update" \
-  --body "Here's the latest..."
+  --body "Here's the latest..." \
+  --draft
 ```
 
 ### With CC and BCC
@@ -53,7 +60,8 @@ fastmail-cli send \
   --cc "bob@example.com" \
   --bcc "archive@example.com" \
   --subject "Proposal" \
-  --body "Please see the attached proposal."
+  --body "Please see the attached proposal." \
+  --draft
 ```
 
 ### From a specific identity
@@ -63,8 +71,11 @@ fastmail-cli send \
   --to "client@example.com" \
   --from "work@yourdomain.com" \
   --subject "Following up" \
-  --body "Just checking in on the project timeline."
+  --body "Just checking in on the project timeline." \
+  --draft
 ```
+
+If the user explicitly asks to send immediately, omit `--draft`.
 
 ## Reply
 
@@ -74,18 +85,20 @@ Always `get` the email first to confirm context:
 # Read the email
 fastmail-cli get EMAIL_ID | jq '{subject: .data.subject, from: .data.from[0].email, body: (.data.bodyValues | to_entries[0].value.value)}'
 
-# Reply to sender only
-fastmail-cli reply EMAIL_ID --body "Thanks, I'll look into this."
+# Draft reply to sender only
+fastmail-cli reply EMAIL_ID --body "Thanks, I'll look into this." --draft
 
-# Reply-all (includes all original recipients)
-fastmail-cli reply EMAIL_ID --body "Thanks everyone." --all
+# Draft reply-all (includes all original recipients)
+fastmail-cli reply EMAIL_ID --body "Thanks everyone." --all --draft
 
-# Reply with additional CC
-fastmail-cli reply EMAIL_ID --body "See you then." --cc "manager@example.com"
+# Draft reply with additional CC
+fastmail-cli reply EMAIL_ID --body "See you then." --cc "manager@example.com" --draft
 
-# Reply from a specific identity
-fastmail-cli reply EMAIL_ID --body "Thanks." --from "work@yourdomain.com"
+# Draft reply from a specific identity
+fastmail-cli reply EMAIL_ID --body "Thanks." --from "work@yourdomain.com" --draft
 ```
+
+If the user explicitly asks to send immediately, omit `--draft`.
 
 ## Forward
 
@@ -93,22 +106,27 @@ fastmail-cli reply EMAIL_ID --body "Thanks." --from "work@yourdomain.com"
 # Read the email first
 fastmail-cli get EMAIL_ID | jq '{subject: .data.subject, from: .data.from[0].email}'
 
-# Forward
+# Draft forward
 fastmail-cli forward EMAIL_ID \
   --to "colleague@example.com" \
-  --body "FYI — see below."
+  --body "FYI - see below." \
+  --draft
 
-# Forward to multiple recipients
+# Draft forward to multiple recipients
 fastmail-cli forward EMAIL_ID \
   --to "alice@example.com, bob@example.com" \
-  --body "Sharing this for your awareness."
+  --body "Sharing this for your awareness." \
+  --draft
 
-# Forward from a specific identity
+# Draft forward from a specific identity
 fastmail-cli forward EMAIL_ID \
   --to "team@example.com" \
   --from "work@yourdomain.com" \
-  --body "Forwarding for the team."
+  --body "Forwarding for the team." \
+  --draft
 ```
+
+If the user explicitly asks to send immediately, omit `--draft`.
 
 ## Body Text Tips
 
@@ -122,7 +140,7 @@ Thanks for reaching out. I'll follow up by end of week.
 
 Best regards"
 
-fastmail-cli reply EMAIL_ID --body "$BODY"
+fastmail-cli reply EMAIL_ID --body "$BODY" --draft
 ```
 
 ## Common Flags
@@ -136,13 +154,14 @@ fastmail-cli reply EMAIL_ID --body "$BODY"
 | `--subject TEXT` | Email subject (`send` only) |
 | `--body TEXT` | Message body |
 | `--all` | Reply-all (`reply` only) |
+| `--draft` | Save to Fastmail Drafts instead of sending |
 
 ## Verifying Success
 
 ```bash
-fastmail-cli send --to "..." --subject "..." --body "..." | jq '{success: .success, message: .message}'
+fastmail-cli send --to "..." --subject "..." --body "..." --draft | jq '{success: .success, message: .message}'
 ```
 
-A successful send returns `"success": true`. On failure, `.error` contains the reason.
+A successful draft or send returns `"success": true`. On failure, `.error` contains the reason.
 
 Refresh `~/.local/share/fastmail-cli-agent/inbox-cache.jsonl` after any action that changes mailbox contents.

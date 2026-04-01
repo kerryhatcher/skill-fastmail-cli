@@ -15,6 +15,8 @@ metadata:
 
 CLI specialist for reading, searching, composing, and managing Fastmail email via `fastmail-cli`.
 
+Default compose behavior: create Fastmail drafts first. Only send immediately when the user explicitly instructs you to send now.
+
 ## When to Use This Skill
 
 - Reading or triaging an inbox
@@ -81,10 +83,10 @@ Action log rules:
 | Get full email with body | `fastmail-cli get EMAIL_ID` |
 | Search emails | `fastmail-cli search --from "alice@example.com" --unread` |
 | List sending identities | `fastmail-cli list identities` |
-| Send a new email | `fastmail-cli send --to "..." --subject "..." --body "..."` |
-| Reply to an email | `fastmail-cli reply EMAIL_ID --body "..."` |
-| Reply-all | `fastmail-cli reply EMAIL_ID --body "..." --all` |
-| Forward an email | `fastmail-cli forward EMAIL_ID --to "..." --body "..."` |
+| Draft a new email | `fastmail-cli send --to "..." --subject "..." --body "..." --draft` |
+| Draft a reply | `fastmail-cli reply EMAIL_ID --body "..." --draft` |
+| Draft a reply-all | `fastmail-cli reply EMAIL_ID --body "..." --all --draft` |
+| Draft a forward | `fastmail-cli forward EMAIL_ID --to "..." --body "..." --draft` |
 | Move to Archive/Trash | `fastmail-cli move EMAIL_ID --to Archive` |
 | Mark as read | `fastmail-cli mark-read EMAIL_ID` |
 | Mark as spam | `fastmail-cli spam EMAIL_ID -y` |
@@ -123,7 +125,7 @@ jq -c '{id, subject, from: (.from[0].email // null), receivedAt, hasAttachment}'
 fastmail-cli get EMAIL_ID | jq -r '.data.bodyValues | to_entries[0].value.value'
 
 # 5. Act on it and append an audit entry
-fastmail-cli reply EMAIL_ID --body "Thanks, I'll look into this."
+fastmail-cli reply EMAIL_ID --body "Thanks, I'll look into this." --draft
 fastmail-cli move EMAIL_ID --to Archive
 fastmail-cli mark-read EMAIL_ID
 ```
@@ -191,11 +193,13 @@ Load detailed guidance based on the task at hand:
 - Maintain `~/.local/share/fastmail-cli-agent/inbox-cache.jsonl` as a JSONL cache of inbox metadata
 - Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every mutating Fastmail action
 - Use `--from` to explicitly select the correct sending identity when multiple exist
-- Confirm subject, recipients, and body with the user before executing any send/reply/forward
+- Default to `--draft` for `send`, `reply`, and `forward`; only omit `--draft` when the user explicitly asks to send immediately
+- Confirm subject, recipients, and body with the user before executing any send/reply/forward/draft
 - Check `.success` in the response before treating the operation as complete
 
 ### MUST NOT DO
 - Send, reply, or forward without user confirmation of the message content
+- Omit `--draft` on compose actions unless the user explicitly asked to send immediately
 - Run `spam EMAIL_ID -y` or `move ... --to Trash` on multiple emails without explicit user approval per-email or a clearly scoped batch
 - Store or log API tokens in command output
 - Store full message bodies in the inbox cache or action log unless the user explicitly asks for that behavior
