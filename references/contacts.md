@@ -31,13 +31,13 @@ fastmail-cli contacts list
 
 ```bash
 # Compact view: name + email
-fastmail-cli contacts list | jq '.data[] | {name: .fullName, emails: [.emails[]?.value]}'
+fastmail-cli contacts list | jq '.data[] | {name, emails: [.emails[]?.email]}'
 
 # Count total contacts
 fastmail-cli contacts list | jq '.data | length'
 
 # Find contacts with a phone number
-fastmail-cli contacts list | jq '.data[] | select(.phones | length > 0) | {name: .fullName, phones: [.phones[]?.value]}'
+fastmail-cli contacts list | jq '.data[] | select(.phones | length > 0) | {name, phones: [.phones[]?.number]}'
 ```
 
 ## Search Contacts
@@ -52,17 +52,17 @@ fastmail-cli contacts search "Acme Corp"
 
 ```bash
 # Get email address for a contact
-fastmail-cli contacts search "alice" | jq '.data[] | {name: .fullName, emails: [.emails[]?.value]}'
+fastmail-cli contacts search "alice" | jq '.data[] | {name, emails: [.emails[]?.email]}'
 
 # First email address only (for use in compose)
-fastmail-cli contacts search "alice" | jq -r '.data[0].emails[0].value'
+fastmail-cli contacts search "alice" | jq -r '.data[0].emails[0].email'
 ```
 
 ## Workflow: Look Up a Contact Before Composing
 
 ```bash
 # 1. Find the contact
-fastmail-cli contacts search "Bob Smith" | jq '.data[] | {name: .fullName, emails: [.emails[]?.value]}'
+fastmail-cli contacts search "Bob Smith" | jq '.data[] | {name, emails: [.emails[]?.email]}'
 
 # 2. Use the address in send/reply
 fastmail-cli send \
@@ -77,9 +77,9 @@ Contacts return fields like:
 
 ```json
 {
-  "fullName": "Alice Example",
-  "emails": [{ "value": "alice@example.com", "type": "work" }],
-  "phones": [{ "value": "+1-555-0100", "type": "mobile" }],
+  "name": "Alice Example",
+  "emails": [{ "email": "alice@example.com", "label": "WORK" }],
+  "phones": [{ "number": "+1-555-0100", "label": "CELL" }],
   "organization": "Example Corp",
   "notes": "Met at conference 2025"
 }
@@ -89,7 +89,7 @@ Extract what you need with jq:
 
 ```bash
 # All emails for a contact
-fastmail-cli contacts search "alice" | jq '.data[0].emails[].value'
+fastmail-cli contacts search "alice" | jq '.data[0].emails[].email'
 
 # Full contact card
 fastmail-cli contacts search "alice" | jq '.data[0]'

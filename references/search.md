@@ -31,6 +31,8 @@ All flags are ANDed together. At least one flag is required.
 
 Dates use ISO 8601 format: `YYYY-MM-DD` (e.g. `2026-04-01`).
 
+`fastmail-cli search` returns matches at `.data[]`.
+
 ## Common Patterns
 
 ### Find unread emails from a specific sender
@@ -74,7 +76,7 @@ fastmail-cli search --flagged --limit 20
 
 ```bash
 # Emails over 5MB
-fastmail-cli search --min-size 5000000 --limit 20 | jq '.data.emails[] | {id, subject, size, from: .from[0].email}'
+fastmail-cli search --min-size 5000000 --limit 20 | jq '.data[] | {id, subject, size, from: .from[0].email}'
 ```
 
 ### Emails with attachments from a sender
@@ -92,7 +94,7 @@ fastmail-cli search --mailbox Sent --from "me@example.com" --after 2026-01-01 --
 ### Find a thread by subject
 
 ```bash
-fastmail-cli search --subject "Project Alpha" --limit 10 | jq '.data.emails[] | {id, threadId, subject, from: .from[0].email, receivedAt}'
+fastmail-cli search --subject "Project Alpha" --limit 10 | jq '.data[] | {id, threadId, subject, from: .from[0].email, receivedAt}'
 ```
 
 ## Combining Filters
@@ -113,19 +115,19 @@ fastmail-cli search \
 
 ```bash
 # Summary: sender + subject
-fastmail-cli search --unread --limit 20 | jq '.data.emails[] | "\(.from[0].email): \(.subject)"'
+fastmail-cli search --unread --limit 20 | jq -r '.data[] | "\(.from[0].email): \(.subject)"'
 
 # Just IDs (for piping to other commands)
-fastmail-cli search --from "boss@example.com" | jq -r '.data.emails[].id'
+fastmail-cli search --from "boss@example.com" | jq -r '.data[].id'
 
 # IDs + subjects as a table
-fastmail-cli search --flagged | jq -r '.data.emails[] | [.id, .subject] | @tsv'
+fastmail-cli search --flagged | jq -r '.data[] | [.id, .subject] | @tsv'
 
 # Count results
-fastmail-cli search --unread | jq '.data.emails | length'
+fastmail-cli search --unread | jq '.data | length'
 
 # Emails received today sorted by time
-fastmail-cli search --after 2026-04-01 --limit 50 | jq '.data.emails | sort_by(.receivedAt) | reverse | .[] | {id, subject, from: .from[0].email, receivedAt}'
+fastmail-cli search --after 2026-04-01 --limit 50 | jq '.data | sort_by(.receivedAt) | reverse | .[] | {id, subject, from: .from[0].email, receivedAt}'
 ```
 
 ## Notes

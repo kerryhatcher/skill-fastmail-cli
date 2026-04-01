@@ -23,6 +23,8 @@ Common mailbox names: `Inbox`, `Sent`, `Drafts`, `Trash`, `Spam`, `Archive`
 
 ## List Emails
 
+`fastmail-cli list emails` returns email rows at `.data.emails[]`.
+
 ```bash
 # INBOX, most recent 20
 fastmail-cli list emails --limit 20
@@ -64,12 +66,14 @@ fastmail-cli get EMAIL_ID | jq '{to: [.data.to[]?.email], cc: [.data.cc[]?.email
 
 Emails share a `threadId` when they belong to the same conversation. To read a full thread:
 
+`fastmail-cli search` returns matches at `.data[]`.
+
 ```bash
 # Step 1: get threadId from an email
 THREAD_ID=$(fastmail-cli get EMAIL_ID | jq -r '.data.threadId')
 
 # Step 2: search all emails in that thread
-fastmail-cli search --text "" | jq --arg tid "$THREAD_ID" '.data.emails[] | select(.threadId == $tid) | {id, subject, from: .from[0].email, receivedAt}'
+fastmail-cli search --text "" | jq --arg tid "$THREAD_ID" '.data[] | select(.threadId == $tid) | {id, subject, from: .from[0].email, receivedAt}'
 ```
 
 Or list emails and filter client-side if you have the thread ID:
@@ -88,6 +92,8 @@ fastmail-cli mark-read EMAIL_ID
 fastmail-cli mark-read EMAIL_ID --unread
 ```
 
+Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for each read/unread change.
+
 ## Move Emails
 
 ```bash
@@ -103,6 +109,8 @@ fastmail-cli move EMAIL_ID --to "Work"
 
 > Use exact mailbox names as returned by `fastmail-cli list mailboxes`.
 
+Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for each move, and refresh `~/.local/share/fastmail-cli-agent/inbox-cache.jsonl` after moves that affect inbox contents.
+
 ## Mark as Spam
 
 ```bash
@@ -112,6 +120,8 @@ fastmail-cli spam EMAIL_ID
 # Skip confirmation (use with caution)
 fastmail-cli spam EMAIL_ID -y
 ```
+
+Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for each spam action.
 
 ## Batch Triage Pattern
 

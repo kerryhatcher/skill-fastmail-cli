@@ -12,6 +12,8 @@ Always follow this sequence before sending anything:
 
 Never execute a send/reply/forward without explicit user confirmation of the final message.
 
+Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every send, reply, forward, or draft action.
+
 ## Identities
 
 List available sending addresses before composing:
@@ -142,3 +144,5 @@ fastmail-cli send --to "..." --subject "..." --body "..." | jq '{success: .succe
 ```
 
 A successful send returns `"success": true`. On failure, `.error` contains the reason.
+
+Refresh `~/.local/share/fastmail-cli-agent/inbox-cache.jsonl` after any action that changes mailbox contents.

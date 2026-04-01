@@ -2,6 +2,8 @@
 
 Masked email addresses are disposable aliases that forward to your real inbox. Useful for signups, services, or any situation where you want to keep your real address private.
 
+Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for each masked-email create, enable, disable, or delete action.
+
 ## States
 
 | State | Behaviour |

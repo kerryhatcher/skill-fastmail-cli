@@ -4,6 +4,8 @@
 
 Before downloading, check whether an email has attachments:
 
+`fastmail-cli list emails` returns email rows at `.data.emails[]`.
+
 ```bash
 # In list output
 fastmail-cli list emails --limit 20 | jq '.data.emails[] | select(.hasAttachment == true) | {id, subject, from: .from[0].email}'
