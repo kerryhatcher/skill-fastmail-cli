@@ -10,6 +10,8 @@ Draft support exists on all compose commands in this CLI:
 
 If the user asks to create a draft, do exactly that. Do not convert a draft request into a send, and do not assume draft creation is unavailable without checking `--help`.
 
+Use `references/email-writing.md` for message style. Drafts should sound like a real person replying in context, not a polished assistant.
+
 ## Safe Compose Pattern
 
 Always follow this sequence before creating or sending anything:
@@ -24,6 +26,14 @@ Always follow this sequence before creating or sending anything:
 Never execute a send/reply/forward without explicit user confirmation of the final message. Unless the user explicitly says otherwise, execute compose actions as drafts.
 
 When the user says things like "draft it", "create the draft", "make a reply draft", or "write the email", treat that as a draft request, not a send request.
+
+When drafting copy:
+
+- Prefer plain, natural wording over polished corporate phrasing
+- Use contractions unless the user wants a formal tone
+- Keep the tone specific to the relationship and context
+- Avoid canned openings and closings that sound like generic assistant output
+- Use concrete details from the thread instead of vague filler when you have them
 
 Append a JSONL audit record to `~/.local/share/fastmail-cli-agent/actions.jsonl` for every send, reply, forward, or draft action.
 
@@ -170,6 +180,9 @@ fastmail-cli forward EMAIL_ID \
 ## Body Text Tips
 
 - Body is plain text; newlines in the `--body` argument are preserved
+- Keep drafts concise unless the user asks for a longer message
+- Match the sender's context and level of formality
+- Read the draft once for AI tells before creating it: over-formal wording, repetitive sentence rhythm, empty filler, and generic transitions
 - For multi-line bodies in shell, use a variable:
 
 ```bash

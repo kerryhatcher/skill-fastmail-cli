@@ -197,6 +197,7 @@ Load detailed guidance based on the task at hand:
 | Inbox triage | `references/triage.md` | listing, reading, moving, marking, threading |
 | Search | `references/search.md` | filtering by sender, subject, date, flags, size |
 | Compose | `references/compose.md` | send, reply, forward, identity selection |
+| Email writing | `references/email-writing.md` | making drafted emails sound natural and human |
 | Attachments | `references/attachments.md` | download, text extraction, image resizing |
 | Masked email | `references/masked-email.md` | create, list, enable, disable, delete aliases |
 | Contacts | `references/contacts.md` | CardDAV setup, list and search contacts |
@@ -212,6 +213,7 @@ Load detailed guidance based on the task at hand:
 - Use `--from` to explicitly select the correct sending identity when multiple exist
 - Default to `--draft` for `send`, `reply`, and `forward`; only omit `--draft` when the user explicitly asks to send immediately
 - Check command help before claiming a compose feature is unavailable; draft support exists on `send`, `reply`, and `forward`
+- Follow `references/email-writing.md` when drafting email copy so responses sound natural instead of model-generated
 - Confirm subject, recipients, and body with the user before executing any send/reply/forward/draft
 - Check `.success` in the response before treating the operation as complete
 
